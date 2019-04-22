@@ -19,7 +19,7 @@ export interface UserInstance extends Sequelize.Instance<UserAttributes>, UserAt
 export interface UserModel extends BaseModelInterface, Sequelize.Model<UserInstance, UserAttributes> { }
 
 export default (sequelize: Sequelize.Sequelize, DataTypes: Sequelize.DataTypes): UserModel => {
-    const User: UserModel = sequelize.define<UserInstance, UserAttributes>('User', {
+    const User: UserModel = sequelize.define('User', {
         id: {
             type: DataTypes.INTEGER,
             allowNull: false,

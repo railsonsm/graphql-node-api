@@ -19,7 +19,7 @@
     "gulp": "3.9.1",
     "gulp-clean": "0.3.2",
     "gulp-typescript": "3.2.2",
-    "nodemon": "1.12.0",
+    "nodemon": "^1.18.11",
     "typescript": "2.5.3"
   },
   "dependencies": {
