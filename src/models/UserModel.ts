@@ -46,13 +46,12 @@ export default (sequelize: Sequelize.Sequelize, DataTypes: Sequelize.DataTypes):
             type: DataTypes.BLOB({
                 length: 'long'
             }),
-            allowNull: false,
-            defaultValue: null
+            allowNull: false
         }
     }, {
             tableName: 'users',
             hooks: {
-                beforeCreate: (user: UserInstance, options: Sequelize.createOptions): void => {
+                beforeCreate: (user: UserInstance, options: Sequelize.CreateOptions): void => {
                     const salt = genSaltSync();
                     user.password = hashSync(user.password, salt);
                 }
