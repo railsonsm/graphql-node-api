@@ -46,7 +46,7 @@ export default (sequelize: Sequelize.Sequelize, DataTypes: Sequelize.DataTypes):
             type: DataTypes.BLOB({
                 length: 'long'
             }),
-            allowNull: false
+            allowNull: true
         }
     }, {
             tableName: 'users',
@@ -54,6 +54,12 @@ export default (sequelize: Sequelize.Sequelize, DataTypes: Sequelize.DataTypes):
                 beforeCreate: (user: UserInstance, options: Sequelize.CreateOptions): void => {
                     const salt = genSaltSync();
                     user.password = hashSync(user.password, salt);
+                },
+                beforeUpdate: (user: UserInstance, options: Sequelize.CreateOptions): void => {
+                    if (user.changed('password')){
+                        const salt = genSaltSync();
+                        user.password = hashSync(user.password, salt);
+                    }         
                 }
             }
         });

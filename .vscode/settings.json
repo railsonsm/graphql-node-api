@@ -1,3 +1,5 @@
 {
-    "git.ignoreLimitWarning": true
+    "git.ignoreLimitWarning": true,
+    "editor.minimap.maxColumn": 160,
+    "editor.wordWrapColumn": 160
 }
