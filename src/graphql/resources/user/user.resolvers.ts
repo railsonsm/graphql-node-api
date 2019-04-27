@@ -3,13 +3,18 @@ import { DBConnection } from "../../../interfaces/BDConnectionInterface";
 import { UserInstance } from "../../../models/UserModel";
 import { Transaction } from "sequelize";
 import { handlerError } from "../../../utils/utils";
+import { compose } from "../../composable/composable.resolver";
+import { authResolver } from "../../composable/auth.resolver";
+import { verify } from "jsonwebtoken";
+import { verifyTokenResolver } from "../../composable/verify-token.resolver";
+import { ResolverContext } from "../../../interfaces/ResolverContextInterface";
 
 export const userResolvers = {
     User: {
-        posts : (user, { first = 10, offset = 0 }, { db }: { db: DBConnection }, info: GraphQLResolveInfo) => {
+        posts: (user, { first = 10, offset = 0 }, { db }: { db: DBConnection }, info: GraphQLResolveInfo) => {
             return db.Post
                 .findAll({
-                    where: {author: user.get('id')},
+                    where: { author: user.get('id') },
                     limit: first,
                     offset: offset
                 }).catch(handlerError);
@@ -17,13 +22,13 @@ export const userResolvers = {
     },
 
     Query: {
-        users: (parent, { first = 10, offset = 0 }, { db }: { db: DBConnection }, info: GraphQLResolveInfo) => {
-            return db.User
-                .findAll({
-                    limit: first,
-                    offset: offset
-                }).catch(handlerError);
-        },
+        users: compose(authResolver, verifyTokenResolver)((parent, { first = 10, offset = 0 }, context: ResolverContext, info: GraphQLResolveInfo) => {
+                return context.db.User
+                    .findAll({
+                        limit: first,
+                        offset: offset
+                    }).catch(handlerError);
+            }),
 
         user: (parent, { id }, { db }: { db: DBConnection }, info: GraphQLResolveInfo) => {
             id = parseInt(id);
@@ -60,7 +65,7 @@ export const userResolvers = {
                     .then((user: UserInstance) => {
                         if (!user) throw new Error(`User with id ${id} not found`);
                         return user.update(input, { transaction: t })
-                        .then((user: UserInstance)=> !!user);
+                            .then((user: UserInstance) => !!user);
                     })
             }).catch(handlerError);
         },
@@ -72,7 +77,7 @@ export const userResolvers = {
                     .then((user: UserInstance) => {
                         if (!user) throw new Error(`User with id ${id} not found`);
                         return user.destroy({ transaction: t })
-                        .then(user => !! true).catch(error=>!!false);
+                            .then(user => !! true).catch(error => !!false);
                     })
             }).catch(handlerError);
         }

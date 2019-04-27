@@ -41,3 +41,9 @@ export const handlerError = (error: Error) =>{
     return Promise.reject(new Error(errorMessage))
     
 }
+
+export const throwErrror = (condition: Boolean, message: string): void =>{
+    if(condition) throw new Error(message);
+}
+
+export const JWT_SECRET: string = process.env.JWT_SECRET;
