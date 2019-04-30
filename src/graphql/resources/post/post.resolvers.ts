@@ -3,13 +3,17 @@ import { GraphQLResolveInfo } from "graphql";
 import { PostIsntance } from "../../../models/PostModel";
 import { Mutation } from "../../mutation";
 import { Transaction } from "sequelize";
-import { handlerError } from "../../../utils/utils";
+import { handlerError, throwErrror } from "../../../utils/utils";
+import { compose } from "../../composable/composable.resolver";
+import { authResolvers } from "../../composable/auth.resolver";
+import { AuthUser } from "../../../interfaces/AuthUserInterface";
+import { ResolverContext } from "../../../interfaces/ResolverContextInterface";
 
 export const postResolvers = {
     Post: {
         author: (post, args, { db }: { db: DBConnection }, info: GraphQLResolveInfo) => {
             return db.User
-                .findById(post.get('autor')).catch(handlerError);
+                .findById(post.get('author')).catch(handlerError);
         },
 
         comments: (post, { first = 10, offset = 0 }, { db }: { db: DBConnection }, info: GraphQLResolveInfo) => {
@@ -34,40 +38,44 @@ export const postResolvers = {
             id = parseInt(id);
             return db.Post.findById(id)
                 .then((post: PostIsntance) => {
-                    if (!post) throw new Error(`Post with id ${id} not found`);
+                    throwErrror(!post,`Post with id ${id} not found`);
                     return post;
                 }).catch(handlerError);
         }
     },
 
     Mutation: {
-        createPost: (parent, { input }, { db }: { db: DBConnection }, info: GraphQLResolveInfo) => {
+        createPost: compose(...authResolvers)((parent, { input }, { db, authUser }: { db: DBConnection ,authUser: AuthUser }, info: GraphQLResolveInfo) => {
+            input.author = authUser.id;
             return db.sequelize.transaction((t: Transaction) => {
                 return db.Post
                     .create(input, { transaction: t });
             }).catch(handlerError);
-        },
-        updatePost: (parent, { id, input }, { db }: { db: DBConnection }, info: GraphQLResolveInfo) => {
+        }),
+        updatePost: compose(...authResolvers)((parent, { id, input }, { db, authUser }: { db: DBConnection ,authUser: AuthUser }, info: GraphQLResolveInfo) => {
             id = parseInt(id);
             return db.sequelize.transaction((t: Transaction) => {
                 return db.Post
                     .findById(id).then((post: PostIsntance) => {
-                        if (!post) throw new Error(`Post with id ${id} not found`);
-                        post.update(input, { transaction: t });
+                        throwErrror(!post,`Post with id ${id} not found`);
+                        throwErrror(post.get("author") != authUser.id, `Unauthorized! You can only edit post by youself!`)
+                        input.author = authUser.id;                        
+                        return post.update(input, { transaction: t });
                     })
             }).catch(handlerError);
-        },
-        deleteUser: (parent, { id }, { db }: { db: DBConnection }, info: GraphQLResolveInfo) => {
+        }),
+        deletePost: compose(...authResolvers)((parent, { id, input }, { db, authUser }: { db: DBConnection ,authUser: AuthUser }, info: GraphQLResolveInfo) => {
             id = parseInt(id);
             return db.sequelize.transaction((t: Transaction) => {
                 return db.Post
                     .findById(id)
-                    .then((user: PostIsntance) => {
-                        if (!user) throw new Error(`Post with id ${id} not found`);
-                        return user.destroy({ transaction: t })
+                    .then((post: PostIsntance) => {
+                        throwErrror(!post,`Post with id ${id} not found`);
+                        throwErrror(post.get("author")!= authUser.id, `Unauthorized! You can only delete post by youself!`)
+                        return post.destroy({ transaction: t })
                             .then(post => !! true).catch(error => !!false);
                     })
             }).catch(handlerError);
-        }
+        })
     }
 }

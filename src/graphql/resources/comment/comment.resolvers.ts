@@ -2,7 +2,10 @@ import { GraphQLResolveInfo } from "graphql";
 import { DBConnection } from "../../../interfaces/BDConnectionInterface";
 import { Transaction } from "sequelize";
 import { CommentInstance } from "../../../models/CommentModel";
-import { handlerError } from "../../../utils/utils";
+import { handlerError, throwErrror } from "../../../utils/utils";
+import { compose } from "../../composable/composable.resolver";
+import { authResolvers } from "../../composable/auth.resolver";
+import { AuthUser } from "../../../interfaces/AuthUserInterface";
 
 export const commentResolvers = {
 
@@ -28,33 +31,37 @@ export const commentResolvers = {
         }
     },
     Mutation: {
-        createComment: (parent, { input }, { db }: { db: DBConnection }, info: GraphQLResolveInfo) => {
+        createComment: compose(...authResolvers)((parent, { input }, { db, authUser }: { db: DBConnection, authUser:AuthUser }, info: GraphQLResolveInfo) => {
+            input.user = authUser.id;
             return db.sequelize.transaction((t: Transaction) => {
                 return db.Comment
                     .create(input, { transaction: t });
             }).catch(handlerError);
-        },
-        updateComment: (parent, { id, input }, { db }: { db: DBConnection }, info: GraphQLResolveInfo) => {
+        }),
+        updateComment: compose(...authResolvers)((parent, { id, input }, { db, authUser }: { db: DBConnection, authUser:AuthUser }, info: GraphQLResolveInfo) => {
             id = parseInt(id);
             return db.sequelize.transaction((t: Transaction) => {
                 return db.Comment
                     .findById(id).then((comment: CommentInstance) => {
-                        if (!comment) throw new Error(`Comment with id ${id} not found`);
+                        throwErrror(!comment,`Comment with id ${id} not found`);
+                        throwErrror(comment.get("user")!= authUser.id, `Unauthorized! You can only edit comments by youself!`)
+                        input.user = authUser.id;
                         return comment.update(input, { transaction: t });
                     })
             }).catch(handlerError);
-        },
-        deleteComment: (parent, { id }, { db }: { db: DBConnection }, info: GraphQLResolveInfo) => {
+        }),
+        deleteComment: compose(...authResolvers)((parent, { id }, { db, authUser }: { db: DBConnection, authUser:AuthUser }, info: GraphQLResolveInfo) => {
             id = parseInt(id);
             return db.sequelize.transaction((t: Transaction) => {
                 return db.Comment
                     .findById(id).then((comment: CommentInstance) => {
-                        if (!comment) throw new Error(`Comment with id ${id} not found`);
+                        throwErrror(!comment,`Comment with id ${id} not found`);
+                        throwErrror(comment.get("user")!= authUser.id, `Unauthorized! You can only edit delete by youself!`)
                         return comment.destroy({ transaction: t })
                             .then(comment => !! true).catch(error => !!false);
                     })
 
             }).catch(handlerError);
-        }
+        })
     }
 }
