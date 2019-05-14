@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "set JWT_SECRET=iron_man && set NODE_ENV=development && nodemon --delay 5 dist/index",
-    "gulp": "gulp"
+    "dev": "nodemon src/index.ts",
+    "build": "sucrase ./src -d ./dist --transforms typescript,imports"
   },
   "keywords": [],
   "author": "",
@@ -24,7 +24,8 @@
     "gulp-clean": "0.3.2",
     "gulp-typescript": "3.2.2",
     "nodemon": "1.12.0",
-    "typescript": "2.5.3"
+    "typescript": "2.5.3",
+    "sucrase": "^3.10.1" 
   },
   "dependencies": {
     "bcryptjs": "2.4.3",

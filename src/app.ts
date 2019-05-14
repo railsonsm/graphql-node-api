@@ -1,5 +1,5 @@
-import * as express from 'express';
-import * as graphqlHTTP from 'express-graphql'
+import express from 'express';
+import  graphqlHTTP from 'express-graphql'
 import schema from './graphql/schema';
 import db from './models'
 import { extratJwtMiddleware } from './middlewares/extract-jwt.middlewares';
@@ -25,7 +25,7 @@ class App {
 
             graphqlHTTP((req) => ({
                 schema: schema,
-                graphiql: process.env.NODE_ENV.trim() === 'development', //
+                graphiql: true, //
                 context: req['context']
             }))
         );

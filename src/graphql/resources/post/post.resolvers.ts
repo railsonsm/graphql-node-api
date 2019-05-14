@@ -28,6 +28,8 @@ export const postResolvers = {
 
     Query: {
         posts: (parent, { first = 10, offset = 0 }, { db }: { db: DBConnection }, info: GraphQLResolveInfo) => {
+           
+            
             return db.Post
                 .findAll({
                     limit: first,
