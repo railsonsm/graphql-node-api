@@ -2,7 +2,7 @@ import * as Sequelize from 'sequelize';
 import { BaseModelInterface } from '../interfaces/BaseModelInterface';
 import { ModelsInterface } from '../interfaces/ModelsInterface';
 
-export interface PostAttributes{
+export interface PostAttributes {
     id?: number,
     title?: string,
     content?: string,
@@ -12,11 +12,11 @@ export interface PostAttributes{
     updatedAt?: string;
 }
 
-export interface PostIsntance extends Sequelize.Instance<PostAttributes>{}
+export interface PostIsntance extends Sequelize.Instance<PostAttributes> { }
 
-export interface PostModel extends BaseModelInterface, Sequelize.Model<PostIsntance, PostAttributes>{}
+export interface PostModel extends BaseModelInterface, Sequelize.Model<PostIsntance, PostAttributes> { }
 
-export default (sequelize: Sequelize.Sequelize, DataTypes: Sequelize.DataTypes): PostModel=>{
+export default (sequelize: Sequelize.Sequelize, DataTypes: Sequelize.DataTypes): PostModel => {
     const Post: PostModel = sequelize.define('Post', {
         id: {
             type: DataTypes.INTEGER,
@@ -38,13 +38,13 @@ export default (sequelize: Sequelize.Sequelize, DataTypes: Sequelize.DataTypes):
             }),
             allowNull: false,
         }
-    },{
-        tableName: 'posts'
-    });
+    }, {
+            tableName: 'posts'
+        });
 
-    Post.associate = (models: ModelsInterface): void =>{
+    Post.associate = (models: ModelsInterface): void => {
         Post.belongsTo(models.User, {
-            foreignKey:{
+            foreignKey: {
                 allowNull: false,
                 field: 'author',
                 name: 'author'

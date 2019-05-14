@@ -1,12 +1,12 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import Sequelize from 'sequelize';
+import { Sequelize } from 'sequelize';
 import { DBConnection } from '../interfaces/BDConnectionInterface';
 import { databases } from '../config/config';
 
 const basename: string = path.basename(module.filename);
 //process.env.NODE_ENV.trim() ||
-const env: string =  'development';
+const env: string = 'development';
 let config = JSON.parse(databases);
 config = config[env]
 
@@ -19,7 +19,7 @@ if (!db) {
 
     config = Object.assign({ operatorsAliases }, config)
 
-    const sequelize: Sequelize.Sequelize = new Sequelize(
+    const sequelize: Sequelize = new Sequelize(
         config.database,
         config.username,
         config.password,
@@ -42,7 +42,7 @@ if (!db) {
 
     db['sequelize'] = sequelize;
 
-    
+
 }
 
 export default <DBConnection>db;
